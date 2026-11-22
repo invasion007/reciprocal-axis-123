@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>12.3 为什么换成 1/U–1/R · 可交互课件</title>
+<style>
+  /* C 基调 · 白底（风格与技术路线.md v4.0） */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC","WenQuanYi Zen Hei",sans-serif;
+    background:linear-gradient(135deg,#f5f7fa 0%,#e4edf9 100%);
+    color:#333;overflow:hidden;
+  }
+  .app{display:grid;grid-template-rows:auto auto 1fr auto;height:100vh;padding:8px 12px 10px;gap:7px}
+  header{background:rgba(255,255,255,.95);border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);padding:8px 16px;display:flex;align-items:center;
+    gap:12px;flex-wrap:nowrap;height:44px;overflow:hidden}
+  header h1{font-size:1rem;color:#2c3e50;font-weight:600;white-space:nowrap}
+  .act{font-size:.74rem;color:#3498db;background:#eef5fd;border:1px solid #d7e5f7;
+    border-radius:20px;padding:2px 10px;white-space:nowrap}
+  .steptitle{font-size:.88rem;color:#37474f;font-weight:600;flex:1 1 auto;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stepsn{flex:0 0 auto;margin-left:auto;font-size:.8rem;color:#90a4ae;
+    font-variant-numeric:tabular-nums}
+  .topnav{display:flex;align-items:center;gap:4px;padding:5px 10px;overflow-x:auto;
+    background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .topnav button{flex:0 0 auto;min-width:26px;height:22px;padding:0 7px;display:inline-flex;
+    align-items:center;justify-content:center;font-family:inherit;font-size:.75rem;
+    font-variant-numeric:tabular-nums;color:#546e7a;background:#f8fafd;border:1px solid #e0e7ef;
+    border-radius:6px;cursor:pointer}
+  .topnav button:hover{border-color:#3498db;background:#f1f7ff}
+  .topnav button.on{background:#3498db;border-color:#3498db;color:#fff;font-weight:700}
+  .stage{display:grid;grid-template-columns:1fr 300px;gap:7px;min-height:0}
+  @media (min-width:1500px){.stage{grid-template-columns:1fr 340px}}
+  .canvaswrap{position:relative;min-width:0;min-height:0;padding:5px;background:#fff;
+    border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,.08)}
+  canvas{display:block;border-radius:10px;background:#fff}
+  aside{background:#fff;border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,.08);
+    padding:12px 14px;overflow-y:auto;min-height:0}
+  aside h3{font-size:.86rem;color:#546e7a;margin:0 0 8px;font-weight:700;letter-spacing:.3px}
+  aside .row{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:7px 0;border-bottom:1px solid #eef2f7}
+  aside .row span{font-size:.78rem;color:#78909c}
+  aside .row b{font-family:"Courier New",monospace;font-size:.9rem;color:#297fb8;
+    font-variant-numeric:tabular-nums}
+  aside .row b.gold{color:#e67e22}
+  aside .row b.warn{color:#c0392b}
+  aside .nte{margin-top:12px;background:#eef5fd;border:1px solid #d7e5f7;border-radius:10px;
+    padding:10px 12px}
+  aside .nte h4{font-size:.78rem;color:#1565c0;font-weight:700;margin-bottom:5px}
+  aside .nte p{font-size:.8rem;color:#546e7a;line-height:1.65}
+  footer{background:rgba(255,255,255,.95);border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.08);
+    padding:8px 14px;display:flex;align-items:center;gap:10px;min-height:52px}
+  .hint{flex:1 1 auto;min-width:0;font-size:.85rem;color:#546e7a;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .ctl{display:flex;align-items:center;gap:8px;flex:0 0 auto;background:#f8fafd;
+    border:1px solid #e0e7ef;border-radius:9px;padding:5px 11px}
+  .ctl.off{opacity:.35}
+  .ctl label{font-size:.76rem;color:#78909c;white-space:nowrap}
+  .ctl .v{font-family:"Courier New",monospace;font-size:1rem;font-weight:700;color:#e67e22;
+    min-width:58px;text-align:right;font-variant-numeric:tabular-nums}
+  .ctl .v i{font-size:.7rem;color:#90a4ae;font-style:normal;margin-left:2px}
+  input[type=range]{width:190px;height:5px;-webkit-appearance:none;appearance:none;
+    background:#dde2e9;border-radius:3px;outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+    border-radius:50%;background:#3498db;border:3px solid #fff;
+    box-shadow:0 0 0 1px #3498db;cursor:pointer}
+  input[type=range]:disabled{opacity:.3;cursor:default}
+  button.pri{font-family:inherit;font-size:.82rem;font-weight:600;color:#fff;background:#3498db;
+    border:1px solid #3498db;border-radius:9px;padding:8px 16px;white-space:nowrap;cursor:pointer}
+  button.pri:hover{background:#2980b9}
+  button.ghost{font-family:inherit;font-size:.82rem;color:#546e7a;background:#f8fafd;
+    border:1px solid #e0e7ef;border-radius:9px;padding:8px 14px;white-space:nowrap;cursor:pointer}
+  button.ghost:hover{background:#f1f7ff;border-color:#3498db}
+@media (max-width:900px){
+  .stage{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  aside{max-height:32vh;padding:9px 12px}
+  aside .row{padding:4px 0}
+  aside .nte{margin-top:8px;padding:8px 10px}
+  aside .nte p{font-size:.74rem;line-height:1.5}
+  header{padding:6px 10px;gap:8px;height:40px}
+  header h1{font-size:.84rem}
+  footer{padding:6px 10px;gap:6px;flex-wrap:wrap}
+  .hint{flex:1 0 100%;white-space:normal;font-size:.76rem;line-height:1.4}
+  input[type=range]{width:120px}
+  button.pri,button.ghost{padding:6px 11px;font-size:.76rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>12.3 电池电动势和内阻的测量</h1>
+    <span class="act" id="actName">第 1 幕</span>
+    <span class="steptitle" id="stepTitle">—</span>
+    <span class="stepsn" id="cnt">1 / 6</span>
+  </header>
+  <nav class="topnav" id="toc"></nav>
+  <div class="stage">
+    <div class="canvaswrap"><canvas id="cv"></canvas></div>
+    <aside>
+      <h3>读数</h3>
+      <div id="railbody"></div>
+      <div class="nte">
+        <h4>为什么这样画</h4>
+        <p id="note">—</p>
+      </div>
+    </aside>
+  </div>
+  <footer>
+    <div class="hint" id="hint">—</div>
+    <div class="ctl off" id="ctl">
+      <label id="pLab">内阻 r</label>
+      <input type="range" id="pRange" min="0" max="1" step="0.1" value="0" disabled>
+      <div class="v" id="pVal">—</div>
+    </div>
+    <button class="ghost" id="btnPrev">◀ 上一步</button>
+    <button class="pri" id="btnNext">下一步 ▶</button>
+  </footer>
+</div>
+<script>
+(function (global) {
+  'use strict';
+
+  var E_TRUE = 1.5;
+  var R_LIST = [2, 3, 4, 5, 6, 8, 10, 15, 20];
+
+  function uOf(R, r) { return E_TRUE * R / (R + r); }
+
+  function measure(r) {
+    var out = [];
+    for (var i = 0; i < R_LIST.length; i++) {
+      var R = R_LIST[i];
+      var U = uOf(R, r);
+      out.push({
+        R: R,
+        U: Math.round(U * 1000) / 1000,
+        I: Math.round((U / R) * 10000) / 10000
+      });
+    }
+    return out;
+  }
+
+  function fit(xs, ys) {
+    var n = xs.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (var i = 0; i < n; i++) {
+      sx += xs[i]; sy += ys[i];
+      sxx += xs[i] * xs[i]; sxy += xs[i] * ys[i];
+    }
+    var den = n * sxx - sx * sx;
+    var k = (n * sxy - sx * sy) / den;
+    return { k: k, b: (sy - k * sx) / n };
+  }
+
+  function sse(xs, ys, f) {
+    var s = 0;
+    for (var i = 0; i < xs.length; i++) {
+      var d = ys[i] - (f.k * xs[i] + f.b);
+      s += d * d;
+    }
+    return s;
+  }
+
+  function solveFromRecip(data) {
+    var xs = [], ys = [];
+    for (var i = 0; i < data.length; i++) {
+      xs.push(1 / data[i].R);
+      ys.push(1 / data[i].U);
+    }
+    var f = fit(xs, ys);
+    var E = 1 / f.b;
+    return { E: E, r: f.k * E, k: f.k, b: f.b };
+  }
+
+  function straightnessU_R(data) {
+    var xs = [], ys = [];
+    for (var i = 0; i < data.length; i++) { xs.push(data[i].R); ys.push(data[i].U); }
+    var f = fit(xs, ys);
+    return sse(xs, ys, f);
+  }
+  function straightnessRecip(data) {
+    var xs = [], ys = [];
+    for (var i = 0; i < data.length; i++) { xs.push(1 / data[i].R); ys.push(1 / data[i].U); }
+    var f = fit(xs, ys);
+    return sse(xs, ys, f);
+  }
+
+  function runSelfTest() {
+    var fails = [], cases = 0, maxErrE = 0, maxErrR = 0;
+
+    [0.2, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0].forEach(function (r) {
+      var d = measure(r);
+      var s = solveFromRecip(d);
+      cases++;
+      maxErrE = Math.max(maxErrE, Math.abs(s.E - E_TRUE) / E_TRUE);
+      maxErrR = Math.max(maxErrR, Math.abs(s.r - r) / r);
+      if (Math.abs(s.E - E_TRUE) / E_TRUE > 0.005) {
+        fails.push('E 还原超差 r=' + r + ' -> ' + s.E.toFixed(4));
+      }
+      if (Math.abs(s.r - r) / r > 0.02) {
+        fails.push('r 还原超差 r=' + r + ' -> ' + s.r.toFixed(4));
+      }
+
+      for (var i = 1; i < d.length; i++) {
+        if (!(d[i].U > d[i - 1].U)) fails.push('U 非单调 r=' + r);
+        if (!(d[i].I < d[i - 1].I)) fails.push('I 非单调 r=' + r);
+      }
+
+      var s1 = straightnessU_R(d), s2 = straightnessRecip(d);
+      if (!(s2 < s1 * 0.01)) {
+        fails.push('换轴未显著拉直 r=' + r + ' SSE ' + s1.toFixed(4) + ' -> ' + s2.toFixed(6));
+      }
+    });
+
+    var flat = measure(0.2);
+    var dspan = flat[flat.length - 1].U - flat[0].U;
+    var flatBig = measure(5.0);
+    var dspanBig = flatBig[flatBig.length - 1].U - flatBig[0].U;
+    if (!(dspan < dspanBig)) fails.push('r 小时 U 变化应当更小');
+
+    return {
+      pass: fails.length === 0,
+      fails: fails,
+      cases: cases,
+      maxErrE: maxErrE,
+      maxErrR: maxErrR,
+      data: measure(2.0)
+    };
+  }
+
+  global.PHY = {
+    E_TRUE: E_TRUE,
+    R_LIST: R_LIST,
+    uOf: uOf,
+    measure: measure,
+    fit: fit,
+    sse: sse,
+    solveFromRecip: solveFromRecip,
+    straightnessU_R: straightnessU_R,
+    straightnessRecip: straightnessRecip,
+    runSelfTest: runSelfTest
+  };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>
+(function (global) {
+  'use strict';
+
+  var PAL = {
+    ink: '#2c3e50',
+    sub: '#546e7a',
+    mute: '#90a4ae',
+    grid: '#e6edf5',
+    axis: '#94a6b8',
+    pt: '#3498db',
+    line: '#c0392b',
+    accent: '#e67e22',
+    good: '#27ae60',
+    panel: '#f8fafd',
+    panelEdge: '#dde2e9'
+  };
+
+  function mk(ox, oy, w, h, xr, yr) {
+
+    var sx = w / (xr[1] - xr[0]);
+    var sy = h / (yr[1] - yr[0]);
+    return {
+      ox: ox, oy: oy, w: w, h: h, xr: xr, yr: yr, sx: sx, sy: sy,
+      X: function (x) { return ox + (x - xr[0]) * sx; },
+      Y: function (y) { return oy + h - (y - yr[0]) * sy; }
+    };
+  }
+
+  function frame(ctx, m, opt) {
+    opt = opt || {};
+    var xs = opt.xTicks || [], ys = opt.yTicks || [];
+    ctx.save();
+
+    ctx.strokeStyle = PAL.grid;
+    ctx.lineWidth = 1;
+    xs.forEach(function (x) {
+      ctx.beginPath(); ctx.moveTo(m.X(x), m.Y(m.yr[0])); ctx.lineTo(m.X(x), m.Y(m.yr[1])); ctx.stroke();
+    });
+    ys.forEach(function (y) {
+      ctx.beginPath(); ctx.moveTo(m.X(m.xr[0]), m.Y(y)); ctx.lineTo(m.X(m.xr[1]), m.Y(y)); ctx.stroke();
+    });
+
+    ctx.strokeStyle = PAL.axis;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(m.X(m.xr[0]), m.Y(m.yr[0]));
+    ctx.lineTo(m.X(m.xr[1]), m.Y(m.yr[0]));
+    ctx.moveTo(m.X(m.xr[0]), m.Y(m.yr[0]));
+    ctx.lineTo(m.X(m.xr[0]), m.Y(m.yr[1]));
+    ctx.stroke();
+
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '12px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    xs.forEach(function (x) {
+      ctx.fillText(opt.xFmt ? opt.xFmt(x) : String(x), m.X(x), m.Y(m.yr[0]) + 7);
+    });
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ys.forEach(function (y) {
+      ctx.fillText(opt.yFmt ? opt.yFmt(y) : String(y), m.X(m.xr[0]) - 7, m.Y(y));
+    });
+
+    ctx.fillStyle = PAL.ink;
+    ctx.font = '600 14px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText(opt.xLabel || '', m.X(m.xr[1]), m.Y(m.yr[0]) + 34);
+    ctx.save();
+    ctx.translate(m.X(m.xr[0]) - 46, m.Y(m.yr[0]) - 6);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText(opt.yLabel || '', 0, 0);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  function dots(ctx, m, pts, opt) {
+    opt = opt || {};
+    ctx.save();
+    pts.forEach(function (p, i) {
+      var x = m.X(p[0]), y = m.Y(p[1]);
+      ctx.beginPath();
+      ctx.arc(x, y, opt.r || 4.6, 0, Math.PI * 2);
+      ctx.fillStyle = opt.fill || PAL.pt;
+      ctx.fill();
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      if (opt.label) {
+        ctx.fillStyle = PAL.sub;
+        ctx.font = '11px "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText(opt.label(i, p), x, y - 9);
+      }
+    });
+    ctx.restore();
+  }
+
+  function line(ctx, m, p0, p1, opt) {
+    opt = opt || {};
+    ctx.save();
+    ctx.strokeStyle = opt.color || PAL.line;
+    ctx.lineWidth = opt.w || 2.2;
+    if (opt.dash) ctx.setLineDash(opt.dash);
+    ctx.beginPath();
+    ctx.moveTo(m.X(p0[0]), m.Y(p0[1]));
+    ctx.lineTo(m.X(p1[0]), m.Y(p1[1]));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function poly(ctx, m, pts, opt) {
+    opt = opt || {};
+    ctx.save();
+    ctx.strokeStyle = opt.color || PAL.accent;
+    ctx.lineWidth = opt.w || 2.2;
+    if (opt.dash) ctx.setLineDash(opt.dash);
+    ctx.beginPath();
+    pts.forEach(function (p, i) {
+      var x = m.X(p[0]), y = m.Y(p[1]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function tag(ctx, m, world, text, opt) {
+    opt = opt || {};
+    var x = m.X(world[0]), y = m.Y(world[1]);
+    ctx.save();
+    ctx.font = (opt.bold ? '700 ' : '') + (opt.size || 13) + 'px "Microsoft YaHei", sans-serif';
+    var w = ctx.measureText(text).width;
+    var pad = 7, h = (opt.size || 13) + 10;
+    var bx = x + (opt.dx || 0), by = y + (opt.dy || 0);
+    if (opt.align === 'right') bx -= w + pad * 2;
+    if (opt.align === 'center') bx -= (w + pad * 2) / 2;
+    ctx.fillStyle = opt.bg || 'rgba(255,255,255,.92)';
+    ctx.strokeStyle = opt.edge || PAL.panelEdge;
+    ctx.lineWidth = 1;
+    if (opt.box !== false) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, w + pad * 2, h, 6);
+      else ctx.rect(bx, by, w + pad * 2, h);
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.fillStyle = opt.color || PAL.ink;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, bx + pad, by + h / 2 + 0.5);
+    ctx.restore();
+  }
+
+  global.RND = { PAL: PAL, mk: mk, frame: frame, dots: dots, line: line, poly: poly, tag: tag };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>
+(function (global) {
+  'use strict';
+  var P = global.PHY, R = global.RND, PAL = R.PAL;
+
+  function bg(ctx, W, H) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#f7fafd');
+    g.addColorStop(1, '#ffffff');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function title(ctx, W, text, sub) {
+    ctx.save();
+    ctx.fillStyle = PAL.ink;
+    ctx.font = '700 19px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(text, 26, 20);
+    if (sub) {
+      ctx.fillStyle = PAL.mute;
+      ctx.font = '13px "Microsoft YaHei", sans-serif';
+      ctx.fillText(sub, 26, 46);
+    }
+    ctx.restore();
+  }
+
+  function sceneData(ctx, W, H, st) {
+    bg(ctx, W, H);
+    title(ctx, W, '先看数据：伏阻法测一节旧干电池', '电阻箱 R + 电压表 U，9 组读数');
+
+    var data = P.measure(st.r);
+    var tx = 26, ty = 88, rh = 36;
+    var cw = Math.min(600, Math.max(430, W * 0.56));
+
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = PAL.panelEdge;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(tx, ty, cw, rh * 3, 10); else ctx.rect(tx, ty, cw, rh * 3);
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+
+    var lead = 74;
+    var colW = (cw - lead) / data.length;
+
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '600 12.5px "Microsoft YaHei", sans-serif';
+    ctx.fillText('R/Ω', tx + lead / 2, ty + rh * 0.5);
+    ctx.fillText('U/V', tx + lead / 2, ty + rh * 1.5);
+    ctx.fillText('1/U', tx + lead / 2, ty + rh * 2.5);
+
+    data.forEach(function (d, i) {
+      var x = tx + lead + colW * (i + 0.5);
+      ctx.font = '600 12.5px "Courier New", monospace';
+      ctx.fillStyle = PAL.ink;
+      ctx.fillText(String(d.R), x, ty + rh * 0.5);
+      ctx.font = '12.5px "Courier New", monospace';
+      ctx.fillStyle = '#297fb8';
+      ctx.fillText(d.U.toFixed(3), x, ty + rh * 1.5);
+      ctx.fillStyle = PAL.mute;
+      ctx.fillText((1 / d.U).toFixed(3), x, ty + rh * 2.5);
+    });
+
+    ctx.strokeStyle = PAL.panelEdge;
+    [1, 2].forEach(function (k) {
+      ctx.beginPath(); ctx.moveTo(tx, ty + rh * k); ctx.lineTo(tx + cw, ty + rh * k); ctx.stroke();
+    });
+    ctx.beginPath(); ctx.moveTo(tx + lead, ty); ctx.lineTo(tx + lead, ty + rh * 3); ctx.stroke();
+
+    var cw2 = Math.min(180, Math.max(130, W * 0.14)), ch2 = 116;
+    var L = Math.min(W - cw2 - 40, tx + cw + Math.max(70, (W - tx - cw - cw2) * 0.45));
+    var Rr = L + cw2, T = ty + 62, B = T + ch2;
+
+    ctx.save();
+    ctx.strokeStyle = PAL.axis;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    var rw = 44;
+    var rx0 = (L + Rr) / 2 - rw / 2, rx1 = rx0 + rw;
+    ctx.beginPath();
+    ctx.moveTo(L, T); ctx.lineTo(rx0, T);
+    ctx.moveTo(rx1, T); ctx.lineTo(Rr, T);
+    ctx.lineTo(Rr, B); ctx.lineTo(L, B); ctx.lineTo(L, T);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = PAL.accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.rect(rx0, T - 12, rw, 24); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = PAL.accent;
+    ctx.font = '700 14px "Times New Roman", serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('R', (rx0 + rx1) / 2, T + 1);
+
+    ctx.beginPath();
+    ctx.moveTo(rx0 - 2, T - 24); ctx.lineTo(rx1 + 8, T + 14);
+    ctx.strokeStyle = PAL.accent; ctx.lineWidth = 1.4; ctx.stroke();
+
+    var vy = T - 54;
+    ctx.strokeStyle = PAL.line;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(L + 6, T); ctx.lineTo(L + 6, vy);
+    ctx.lineTo((L + Rr) / 2 - 19, vy);
+    ctx.moveTo((L + Rr) / 2 + 19, vy);
+    ctx.lineTo(Rr - 6, vy); ctx.lineTo(Rr - 6, T);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc((L + Rr) / 2, vy, 19, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = PAL.line;
+    ctx.font = '700 14px "Times New Roman", serif';
+    ctx.fillText('V', (L + Rr) / 2, vy + 1);
+
+    var by = (T + B) / 2;
+    ctx.strokeStyle = PAL.axis;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(L, T); ctx.lineTo(L, by - 14);
+    ctx.moveTo(L, by + 6); ctx.lineTo(L, B);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(L - 15, by - 14); ctx.lineTo(L + 15, by - 14);
+    ctx.lineWidth = 2.4; ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(L - 8, by + 6); ctx.lineTo(L + 8, by + 6);
+    ctx.lineWidth = 4.6; ctx.stroke();
+
+    ctx.fillStyle = PAL.ink;
+    ctx.font = '600 13px "Times New Roman", serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText('E, r', L - 22, by + 26);
+
+    var swx = (L + Rr) / 2;
+    ctx.strokeStyle = PAL.axis;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(L, B); ctx.lineTo(swx - 16, B);
+    ctx.moveTo(swx + 16, B); ctx.lineTo(Rr, B);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(swx - 16, B); ctx.lineTo(swx + 14, B - 19);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(swx - 16, B, 2.4, 0, Math.PI * 2);
+    ctx.fillStyle = PAL.axis; ctx.fill();
+    ctx.restore();
+
+    var ty2 = ty + rh * 3 + 30;
+    R.tag(ctx, { X: function () { return 26; }, Y: function () { return ty2; } }, [0, 0],
+      '这 9 组 (R, U) 就是全部原始数据 —— 下面所有图，用的都是它',
+      { size: 13.5, bold: true, color: PAL.sub, bg: '#eef5fd', edge: '#d7e5f7' });
+  }
+
+  function plotUR(ctx, W, H, st, opt) {
+    opt = opt || {};
+    var m = R.mk(96, 74, W - 190, H - 190, [0, 21], [0, 1.62]);
+    R.frame(ctx, m, {
+      xTicks: [0, 5, 10, 15, 20], yTicks: [0, 0.5, 1.0, 1.5],
+      xLabel: 'R / Ω', yLabel: 'U / V',
+      yFmt: function (y) { return y.toFixed(1); }
+    });
+
+    var pts = [];
+    for (var x = 0.2; x <= 21; x += 0.4) pts.push([x, P.uOf(x, st.r)]);
+    R.poly(ctx, m, pts, { color: PAL.accent, w: 2.4, dash: [7, 5] });
+
+    var data = P.measure(st.r);
+    var xy = data.map(function (d) { return [d.R, d.U]; });
+    R.dots(ctx, m, xy, { r: 5 });
+    return { m: m, xy: xy, data: data };
+  }
+
+  function sceneUR(ctx, W, H, st) {
+    bg(ctx, W, H);
+    title(ctx, W, '画法一：直接画 U–R', '把测到的两个量原样放上坐标纸');
+    var g = plotUR(ctx, W, H, st);
+
+    R.tag(ctx, g.m, [19.2, 1.22], '曲线一路走平，越来越接近 E',
+      { size: 13, color: PAL.accent, align: 'right', dx: -6, dy: -14 });
+    R.tag(ctx, g.m, [3, 0.42], '左边却陡',
+      { size: 13, color: PAL.mute, dx: 4, dy: 8 });
+
+    ctx.save();
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '13.5px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('这条线没有恒定斜率 —— 求不出 E，也求不出 r。', 96, H - 56);
+    ctx.restore();
+  }
+
+  function sceneFitFail(ctx, W, H, st) {
+    bg(ctx, W, H);
+    title(ctx, W, '硬要画成直线会怎样', '对同一组点做最小二乘拟合，看残差');
+    var g = plotUR(ctx, W, H, st);
+    var xs = g.xy.map(function (p) { return p[0]; });
+    var ys = g.xy.map(function (p) { return p[1]; });
+    var f = P.fit(xs, ys);
+
+    var x0 = 0, x1 = 21;
+    R.line(ctx, g.m, [x0, f.k * x0 + f.b], [x1, f.k * x1 + f.b],
+      { color: PAL.line, w: 2, dash: [6, 4] });
+
+    ctx.save();
+    ctx.strokeStyle = PAL.line; ctx.lineWidth = 1.4;
+    g.xy.forEach(function (p) {
+      var yFit = f.k * p[0] + f.b;
+      ctx.beginPath();
+      ctx.moveTo(g.m.X(p[0]), g.m.Y(p[1]));
+      ctx.lineTo(g.m.X(p[0]), g.m.Y(yFit));
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    var s1 = P.straightnessU_R(g.data);
+    var s2 = P.straightnessRecip(g.data);
+    R.tag(ctx, g.m, [11, 1.44], '残差平方和 ' + s1.toFixed(3) + '（红竖线越长越离谱）',
+      { size: 13, color: PAL.line, align: 'center', dy: -6 });
+
+    ctx.save();
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '13.5px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('点根本不在一条直线上：两头翘、中间塌。硬拟合出来的斜率没有物理意义。', 96, H - 56);
+    ctx.restore();
+  }
+
+  function plotRecip(ctx, W, H, st, opt) {
+    opt = opt || {};
+    var data = P.measure(st.r);
+    var xs = data.map(function (d) { return 1 / d.R; });
+    var ys = data.map(function (d) { return 1 / d.U; });
+    var m = R.mk(opt.ox || 96, opt.oy || 74, opt.w || (W - 190), opt.h || (H - 190),
+      [0, 0.56], [0, 1.55]);
+    R.frame(ctx, m, {
+      xTicks: [0, 0.1, 0.2, 0.3, 0.4, 0.5], yTicks: [0, 0.5, 1.0, 1.5],
+      xLabel: '1/R  /  Ω⁻¹', yLabel: '1/U  /  V⁻¹',
+      xFmt: function (x) { return x.toFixed(1); },
+      yFmt: function (y) { return y.toFixed(1); }
+    });
+    var f = P.fit(xs, ys);
+    R.line(ctx, m, [0, f.b], [0.56, f.k * 0.56 + f.b], { color: PAL.line, w: 2.4 });
+    R.dots(ctx, m, xs.map(function (x, i) { return [x, ys[i]]; }), { r: 5 });
+    var sol = P.solveFromRecip(data);
+    return { m: m, xs: xs, ys: ys, f: f, sol: sol, data: data };
+  }
+
+  function sceneRecip(ctx, W, H, st) {
+    bg(ctx, W, H);
+    title(ctx, W, '画法二：换成 1/U–1/R', '同一组数据，只是换了个坐标轴');
+    var g = plotRecip(ctx, W, H, st);
+    R.tag(ctx, g.m, [0.30, 1.32], '点落在一条直线上',
+      { size: 14, bold: true, color: PAL.good, align: 'center', dy: -8 });
+
+    ctx.save();
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '13.5px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('推导：E = U + (U/R)·r  →  1/U = (r/E)·(1/R) + 1/E，恰好是 y = kx + b。', 96, H - 56);
+    ctx.restore();
+  }
+
+  function sceneRead(ctx, W, H, st) {
+    bg(ctx, W, H);
+    var narrow = W < 760;
+    title(ctx, W, '从这条直线读出 E 和 r', '截距给 E，斜率给 r');
+
+    var g = plotRecip(ctx, W, H, st, narrow ? { h: H - 250 } : {});
+
+    var yi = g.f.b;
+    ctx.save();
+    ctx.strokeStyle = PAL.good; ctx.lineWidth = 1.6; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(g.m.X(0), g.m.Y(yi));
+    ctx.lineTo(g.m.X(0.56), g.m.Y(yi));
+    ctx.stroke();
+    ctx.restore();
+    R.tag(ctx, g.m, [0.02, yi], '截距 = 1/E = ' + g.f.b.toFixed(3),
+      { size: narrow ? 11.5 : 13, color: PAL.good, dx: 6, dy: narrow ? -28 : -30 });
+
+    var xa = narrow ? 0.34 : 0.40;
+    var ya = g.f.k * xa + g.f.b;
+    R.tag(ctx, g.m, [xa, ya], '斜率 = r/E = ' + g.f.k.toFixed(3),
+      { size: narrow ? 11.5 : 13, color: PAL.line, align: 'center', dx: 0, dy: -26 });
+
+    if (narrow) {
+
+      var by = g.m.oy + g.m.h + 52;
+      ctx.save();
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = PAL.panelEdge;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(26, by, W - 52, 62, 10); else ctx.rect(26, by, W - 52, 62);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = PAL.mute;
+      ctx.font = '600 11px "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText('算出来的测量值（真值 E=1.50 V，r=' + st.r.toFixed(2) + ' Ω）', 40, by + 9);
+      ctx.fillStyle = '#297fb8';
+      ctx.font = '700 19px "Courier New", monospace';
+      ctx.fillText('E = ' + g.sol.E.toFixed(2) + ' V', 40, by + 28);
+      ctx.fillText('r = ' + g.sol.r.toFixed(2) + ' Ω', 210, by + 28);
+      ctx.restore();
+    } else {
+      var bx = W - 250, by2 = 84;
+      ctx.save();
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = PAL.panelEdge; ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by2, 210, 132, 12); else ctx.rect(bx, by2, 210, 132);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = PAL.mute;
+      ctx.font = '600 12px "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText('算出来的测量值', bx + 16, by2 + 14);
+      ctx.fillStyle = '#297fb8';
+      ctx.font = '700 21px "Courier New", monospace';
+      ctx.fillText('E = ' + g.sol.E.toFixed(2) + ' V', bx + 16, by2 + 40);
+      ctx.fillText('r = ' + g.sol.r.toFixed(2) + ' Ω', bx + 16, by2 + 76);
+      ctx.fillStyle = PAL.mute;
+      ctx.font = '12px "Microsoft YaHei", sans-serif';
+      ctx.fillText('真值 E=1.50 V，r=' + st.r.toFixed(2) + ' Ω', bx + 16, by2 + 110);
+      ctx.restore();
+    }
+  }
+
+  function sceneCompare(ctx, W, H, st) {
+    bg(ctx, W, H);
+    title(ctx, W, '换成内阻更小的电池，差别更明显',
+      '同一套办法，左：U–R；右：1/U–1/R');
+
+    var halfW = (W - 210) / 2;
+
+    var data = P.measure(st.r);
+    var m1 = R.mk(70, 96, halfW, H - 230, [0, 21], [0, 1.62]);
+    R.frame(ctx, m1, {
+      xTicks: [0, 10, 20], yTicks: [0, 0.5, 1.0, 1.5],
+      xLabel: 'R / Ω', yLabel: 'U / V', yFmt: function (y) { return y.toFixed(1); }
+    });
+    var pts = [];
+    for (var x = 0.2; x <= 21; x += 0.5) pts.push([x, P.uOf(x, st.r)]);
+    R.poly(ctx, m1, pts, { color: PAL.accent, w: 2.2, dash: [7, 5] });
+    R.dots(ctx, m1, data.map(function (d) { return [d.R, d.U]; }), { r: 4.4 });
+
+    ctx.save();
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '600 13px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('U–R：几乎贴着 E 走平', 70 + halfW / 2, 72);
+    ctx.restore();
+
+    var m2 = R.mk(W / 2 + 70, 96, halfW, H - 230, [0, 0.56], [0, 1.55]);
+    R.frame(ctx, m2, {
+      xTicks: [0, 0.2, 0.4], yTicks: [0, 0.5, 1.0, 1.5],
+      xLabel: '1/R / Ω⁻¹', yLabel: '1/U / V⁻¹',
+      xFmt: function (x) { return x.toFixed(1); },
+      yFmt: function (y) { return y.toFixed(1); }
+    });
+    var xs = data.map(function (d) { return 1 / d.R; });
+    var ys = data.map(function (d) { return 1 / d.U; });
+    var f = P.fit(xs, ys);
+    R.line(ctx, m2, [0, f.b], [0.56, f.k * 0.56 + f.b], { color: PAL.line, w: 2.2 });
+    R.dots(ctx, m2, xs.map(function (x, i) { return [x, ys[i]]; }), { r: 4.4 });
+
+    ctx.save();
+    ctx.fillStyle = PAL.sub;
+    ctx.font = '600 13px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('1/U–1/R：照样是一条直线', W / 2 + 70 + halfW / 2, 72);
+    ctx.restore();
+
+    var sol = P.solveFromRecip(data);
+    R.tag(ctx, { X: function () { return 26; }, Y: function () { return H - 52; } }, [0, 0],
+      'r = ' + st.r.toFixed(2) + ' Ω 时：E 仍然 = ' + sol.E.toFixed(2) + ' V，r = ' + sol.r.toFixed(2) + ' Ω（照样读得出）',
+      { size: 14, bold: true, color: PAL.sub, bg: '#eef5fd', edge: '#d7e5f7' });
+  }
+
+  global.SCENES = {
+    data: sceneData,
+    ur: sceneUR,
+    fitfail: sceneFitFail,
+    recip: sceneRecip,
+    read: sceneRead,
+    compare: sceneCompare
+  };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>
+(function (global) {
+  'use strict';
+
+  var STEPS = [
+    {
+      act: '第 1 幕 · 数据',
+      title: '一组实测数据',
+      scene: 'data',
+      hint: '这 9 组 (R, U) 就是全部原始数据，后面所有图都用它',
+      note: '伏阻法：只有电压表和电阻箱。改变 R，读出对应的 U。数据本身没有好坏，关键在怎么画。',
+      allow: {}
+    },
+    {
+      act: '第 2 幕 · 画法一',
+      title: '直接画 U–R',
+      scene: 'ur',
+      hint: '注意这条曲线：左边陡，右边越走越平',
+      note: 'U = E·R/(R+r) 不是直线。曲线没有恒定斜率，所以「斜率 = −r」这一套用不上。',
+      allow: {}
+    },
+    {
+      act: '第 3 幕 · 硬拟合',
+      title: '硬塞一条直线会怎样',
+      scene: 'fitfail',
+      hint: '红色竖线是每个点到拟合直线的偏差',
+      note: '最小二乘能强行画出一条线，但点根本不在线上。斜率、截距都没有物理意义，读出来的 E、r 是假的。',
+      allow: {}
+    },
+    {
+      act: '第 4 幕 · 画法二',
+      title: '换成 1/U–1/R',
+      scene: 'recip',
+      hint: '同一组数据，只是把两个轴都取倒数',
+      note: 'E = U + (U/R)r 两边除以 U 再整理：1/U = (r/E)·(1/R) + 1/E。这是 y = kx + b，所以点必然排成一条直线。',
+      allow: {}
+    },
+    {
+      act: '第 5 幕 · 读数',
+      title: '从直线读出 E 和 r',
+      scene: 'read',
+      hint: '截距 1/E 给出 E，斜率 r/E 配合 E 给出 r',
+      note: '截距 = 1/E → E = 1/截距；斜率 = r/E → r = 斜率 × E。两个参数一次拿全。',
+      allow: {}
+    },
+    {
+      act: '第 6 幕 · 对比',
+      title: '内阻越小，U–R 越平',
+      scene: 'compare',
+      hint: '拖动下方滑块改变内阻 r，看左右两张图各怎么变',
+      note: 'r 越小，U–R 曲线越贴着 E 走平，越读不出来；而 1/U–1/R 始终是一条斜率明确的直线，E、r 照样读得出。这就是要换轴的原因。',
+      allow: { r: { min: 0.2, max: 5, step: 0.1, label: '内阻 r', unit: 'Ω', init: 2.0 } }
+    }
+  ];
+
+  global.STEPS = STEPS;
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>
+(function (global) {
+  'use strict';
+  var P = global.PHY, S = global.SCENES, STEPS = global.STEPS;
+
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var state = { i: 0, r: 2.0 };
+  var W = 1200, H = 720;
+
+  function resize() {
+    var box = cv.parentElement.getBoundingClientRect();
+    var dpr = Math.max(1, Math.min(2, global.devicePixelRatio || 1));
+    W = Math.max(300, Math.floor(box.width));
+    H = Math.max(240, Math.floor(box.height));
+    cv.width = Math.floor(W * dpr);
+    cv.height = Math.floor(H * dpr);
+    cv.style.width = W + 'px';
+    cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function draw() {
+    var st = STEPS[state.i];
+    ctx.clearRect(0, 0, W, H);
+    S[st.scene](ctx, W, H, state);
+    document.getElementById('actName').textContent = st.act;
+    document.getElementById('stepTitle').textContent = st.title;
+    document.getElementById('cnt').textContent = (state.i + 1) + ' / ' + STEPS.length;
+    document.getElementById('hint').textContent = st.hint;
+    document.getElementById('note').innerHTML = st.note;
+    var rb = document.getElementById('railbody');
+    rb.innerHTML = railHTML(st);
+    syncSlider(st);
+    syncNav();
+  }
+
+  function railHTML(st) {
+    var d = P.measure(state.r);
+    var rows = '';
+    function row(k, v, cls) {
+      return '<div class="row"><span>' + k + '</span><b class="' + (cls || '') + '">' + v + '</b></div>';
+    }
+    rows += row('内阻 r', state.r.toFixed(1) + ' Ω');
+    rows += row('组数', d.length + ' 组');
+    if (st.scene === 'ur' || st.scene === 'fitfail') {
+      var s1 = P.straightnessU_R(d);
+      rows += row('U–R 直线残差', s1.toFixed(3), s1 > 0.01 ? 'warn' : '');
+    }
+    if (st.scene === 'recip' || st.scene === 'read' || st.scene === 'compare') {
+      var sol = P.solveFromRecip(d);
+      rows += row('1/U–1/R 残差', P.straightnessRecip(d).toFixed(5), 'gold');
+      rows += row('截距 1/E', sol.b.toFixed(3), 'gold');
+      rows += row('斜率 r/E', sol.k.toFixed(3), 'gold');
+      rows += row('反推 E', sol.E.toFixed(2) + ' V', 'gold');
+      rows += row('反推 r', sol.r.toFixed(2) + ' Ω', 'gold');
+    }
+    return rows;
+  }
+
+  function syncSlider(st) {
+    var box = document.getElementById('ctl');
+    var r = st.allow && st.allow.r;
+    if (!r) { box.classList.add('off'); document.getElementById('pRange').disabled = true; return; }
+    box.classList.remove('off');
+    var inp = document.getElementById('pRange');
+    inp.disabled = false;
+    inp.min = r.min; inp.max = r.max; inp.step = r.step;
+    inp.value = state.r;
+    document.getElementById('pLab').textContent = r.label;
+    document.getElementById('pVal').innerHTML = state.r.toFixed(1) + '<i>' + r.unit + '</i>';
+  }
+
+  function syncNav() {
+    var wrap = document.getElementById('toc');
+    if (wrap.dataset.built) {
+      Array.prototype.forEach.call(wrap.querySelectorAll('button'), function (b, i) {
+        b.classList.toggle('on', i === state.i);
+      });
+      return;
+    }
+    STEPS.forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.textContent = String(i + 1);
+      b.title = s.title;
+      b.onclick = function () { state.i = i; draw(); };
+      wrap.appendChild(b);
+    });
+    wrap.dataset.built = '1';
+    syncNav();
+  }
+
+  function go(d) {
+    state.i = Math.max(0, Math.min(STEPS.length - 1, state.i + d));
+    draw();
+  }
+
+  global.addEventListener('resize', resize);
+  global.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  });
+
+  document.getElementById('btnNext').onclick = function () { go(1); };
+  document.getElementById('btnPrev').onclick = function () { go(-1); };
+  document.getElementById('pRange').oninput = function () {
+    state.r = parseFloat(this.value);
+    draw();
+  };
+
+  resize();
+
+  global.__viz = {
+    selfTest: function () {
+      var r = P.runSelfTest();
+      r.rendered = { w: W, h: H, step: state.i, r: state.r };
+      return r;
+    },
+    goto: function (i) { state.i = i; draw(); },
+    setR: function (v) { state.r = v; draw(); },
+    state: function () { return { i: state.i, r: state.r, w: W, h: H }; }
+  };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+</body>
+</html>
